@@ -69,10 +69,16 @@ async function isWhitelisted(ip) {
 }
 
 async function addWhitelist(ip) {
-	const { error } = await exec("sudo iptables -A INPUT -p tcp -s " + ip + " --dport 53 -j ACCEPT")
+	const { error } = await exec(
+		"sudo iptables -I DOCKER-USER -p tcp -s " + ip + " --dport 53 -j RETURN"
+	)
 	if (error) throw error
-	const { error2 } = await exec("sudo iptables -A INPUT -p udp -s " + ip + " --dport 53 -j ACCEPT")
+	const { error2 } = await exec(
+		"sudo iptables -I DOCKER-USER -p udp -s " + ip + " --dport 53 -j RETURN"
+	)
 	if (error2) throw error2
 
-	return await fsp.appendFile("allowed.list", ip + "\n")
+	await fsp.appendFile("allowed.list", ip + "\n")
+	console.log(ip + " was added")
+	return
 }
