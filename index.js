@@ -1,21 +1,14 @@
 const express = require("express")
 const hbs = require("express-handlebars")
 const config = require("./config")
-const fsp = require("fs/promises")
 const app = express()
 const rateLimit = require("express-rate-limit")
-const util = require("util")
-const exec = util.promisify(require("child_process").exec)
+const table = require("./table")
 
-fsp.stat("allowed.list").catch(err => {
-	fsp.writeFile("allowed.list", "127.0.0.1\n").catch(() => {
-		console.error("Failed to create allowed.list")
-		process.exit(1)
-	})
-})
+table.init()
 
 const limiter = rateLimit({
-	windowMs: 24 * 60 * 60 * 1000, // 24h
+	windowMs: 12 * 60 * 60 * 1000, // 12h
 	max: 3,
 })
 
@@ -33,7 +26,7 @@ app.set("view engine", "hbs")
 app.use(express.json())
 
 app.post("/password", limiter, async (req, res) => {
-	if (await isWhitelisted(req.ip)) {
+	if (await table.exist(req.ip)) {
 		res.send("OK")
 		return
 	}
@@ -56,29 +49,9 @@ app.post("/password", limiter, async (req, res) => {
 })
 
 app.get("/", async (req, res) => {
-	res.render("main", { isWhitelisted: await isWhitelisted(req.ip) })
+	res.render("main", { isWhitelisted: await table.exist(req.ip) })
 })
 
 app.listen(config.port, () => {
 	console.log("Listening at port: " + config.port)
 })
-
-async function isWhitelisted(ip) {
-	const data = await fsp.readFile("allowed.list", "utf8")
-	return data.includes(ip)
-}
-
-async function addWhitelist(ip) {
-	const { error } = await exec(
-		"sudo iptables -I DOCKER-USER -p tcp -s " + ip + " --dport 53 -j RETURN"
-	)
-	if (error) throw error
-	const { error2 } = await exec(
-		"sudo iptables -I DOCKER-USER -p udp -s " + ip + " --dport 53 -j RETURN"
-	)
-	if (error2) throw error2
-
-	await fsp.appendFile("allowed.list", ip + "\n")
-	console.log(ip + " was added")
-	return
-}

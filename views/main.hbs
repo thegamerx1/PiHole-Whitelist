@@ -23,12 +23,14 @@
     <!-- Content wrapper start -->
     <div class="content-wrapper d-flex justify-content-center align-items-center">
       <div class="card">
-        <h2>DNS Form</h2>
         {{#if isWhitelisted}}
           <div class="alert alert-success" role="alert">
             <strong>Success!</strong> You are whitelisted.
           </div>
           {{else}}
+          <div class="alert alert-danger" role="alert">
+            You are not whitelisted.
+          </div>
           <div>
             <p id="error" class="text-danger"></p>
           </div>
