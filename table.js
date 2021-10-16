@@ -16,7 +16,7 @@ class table {
 		await fsp.readFile("allowed.list", "utf8").then(data => {
 			ipList = data.split("\n").filter(ip => ip !== "")
 		})
-		ipList.forEach(ip => {
+		ipList.forEach(async ip => {
 			await this.add(ip)
 		})
 		console.log("Table ready")
