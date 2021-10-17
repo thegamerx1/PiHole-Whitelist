@@ -14,8 +14,8 @@ class table {
 
 		console.log("Preparing table")
 		await this.flush()
-		await run("-I DOCKER-USER -i eth0 -p tcp --dport 53 -j DROP")
-		await run("-I DOCKER-USER -i eth0 -p udp --dport 53 -j DROP")
+		await run("-I DOCKER-USER -i eth0 -p tcp --dport 53 -j DROP -w 5")
+		await run("-I DOCKER-USER -i eth0 -p udp --dport 53 -j DROP -w 5")
 		await fsp.readFile(FILE, "utf8").then(data => {
 			JSON.parse(data).forEach(async ip => {
 				await this.add(ip)
@@ -25,14 +25,14 @@ class table {
 	}
 
 	async add(ip) {
-		await run(`-I DOCKER-USER -i eth0 -s ${ip}/32 -j ACCEPT`)
+		await run(`-I DOCKER-USER -i eth0 -s ${ip}/32 -j ACCEPT -w 5`)
 		ipList.push(ip)
 		await saveFile()
 		console.log(ip + " was added")
 	}
 
 	async remove(ip) {
-		await run(`-D DOCKER-USER -s ${ip}/32`)
+		await run(`-D DOCKER-USER -s ${ip}/32 -w 5`)
 		ipList.splice(ipList.indexOf(ip), 1)
 		await saveFile()
 		console.log(ip + " was removed")
