@@ -2,24 +2,24 @@ const fsp = require("fs/promises")
 const util = require("util")
 const exec = util.promisify(require("child_process").exec)
 
+const FILE = "allowed.json"
 isWindows = process.platform === "win32"
 var ipList = []
 
 class table {
 	async init() {
-		await fsp.stat("allowed.list").catch(async err => {
-			await fsp.writeFile("allowed.list", "127.0.0.1\n")
+		await fsp.stat(FILE).catch(async err => {
+			await fsp.writeFile(FILE, JSON.stringify(["127.0.0.1"]))
 		})
 
 		console.log("Preparing table")
 		await this.flush()
 		await run("-I DOCKER-USER -i eth0 -p tcp --dport 53 -j DROP")
 		await run("-I DOCKER-USER -i eth0 -p udp --dport 53 -j DROP")
-		await fsp.readFile("allowed.list", "utf8").then(data => {
-			ipList = data.split("\n").filter(ip => ip !== "")
-		})
-		ipList.forEach(async ip => {
-			await this.add(ip)
+		await fsp.readFile(FILE, "utf8").then(data => {
+			JSON.parse(data).forEach(async ip => {
+				await this.add(ip)
+			})
 		})
 		console.log("Table ready")
 	}
@@ -61,7 +61,7 @@ async function run(command) {
 }
 
 async function saveFile() {
-	await fsp.writeFile("allowed.list", ipList.join("\n"))
+	await fsp.writeFile(FILE, JSON.stringify(ipList))
 }
 
 module.exports = new table()
