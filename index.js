@@ -39,7 +39,8 @@ app.post("/password", limiter, async (req, res) => {
 		return
 	}
 
-	addWhitelist(req.ip)
+	table
+		.add(req.ip)
 		.then(() => {
 			res.status(200).send()
 		})
