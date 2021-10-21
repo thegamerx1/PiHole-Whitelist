@@ -1,0 +1,14 @@
+[Unit]
+Description=DNSWhiteList
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/dnswhitelist
+User=dnswhitelist
+Environment="NODE_ENV=production"
+Type=simple
+ExecStart=/usr/bin/node .
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

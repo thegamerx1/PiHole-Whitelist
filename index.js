@@ -10,6 +10,7 @@ table.init()
 const limiter = rateLimit({
 	windowMs: 12 * 60 * 60 * 1000, // 12h
 	max: 3,
+	skipSuccessfulRequests: true,
 })
 
 app.set("trust proxy", "loopback")
