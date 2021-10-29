@@ -16,8 +16,10 @@ service dnswhitelist start
 
 ```shell
 iptables -N dnsblok
-iptables -A INPUT -m multiport --dport 853 -j dnsblok
-iptables -A DOCKER-USER -m multiport --dport 53 -j dnsblok
+iptables -I INPUT -p tcp --dport 853 -j dnsblok
+iptables -I INPUT -p udp --dport 853 -j dnsblok
+iptables -I DOCKER-USER -p tcp --dport 53 -j dnsblok
+iptables -I DOCKER-USER -p udp --dport 53 -j dnsblok
 ```
 
 ## Sudo
