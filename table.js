@@ -15,9 +15,9 @@ class table {
 
 		console.log("Preparing table")
 		await this.flush()
-		await run("-I {table} -i eth0 -j DROP")
+		await run("-I {table} -j RETURN")
 		config["as-allow"].forEach(async ip => {
-			await run(`-I {table} -i eth0 -s ${ip} -j ACCEPT`)
+			await run(`-I {table} -s ${ip} -j ACCEPT`)
 		})
 		await fsp.readFile(FILE, "utf8").then(data => {
 			JSON.parse(data).forEach(async ip => {
@@ -28,7 +28,7 @@ class table {
 	}
 
 	async add(ip) {
-		await run(`-I {table} -i eth0 -s ${ip}/32 -j ACCEPT`)
+		await run(`-I {table} -s ${ip}/32 -j ACCEPT`)
 		ipList.push(ip)
 		await saveFile()
 		console.log(ip + " was added")
