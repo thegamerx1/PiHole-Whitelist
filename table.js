@@ -7,6 +7,8 @@ const FILE = "allowed.json"
 isWindows = process.platform === "win32"
 var ipList = []
 
+const TIMEOUT = 10
+
 class table {
 	async init() {
 		await fsp.stat(FILE).catch(async err => {
@@ -57,7 +59,7 @@ async function run(command) {
 		console.log(`Run "sudo iptables ${command}"`)
 		return
 	}
-	const { error } = await exec("sudo iptables " + command + " -w 5")
+	const { error } = await exec("sudo iptables " + command + " -w " + TIMEOUT)
 	if (error) {
 		console.error(`"${command}" failed: `)
 		console.error(error)
