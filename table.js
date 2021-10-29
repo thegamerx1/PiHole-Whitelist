@@ -15,7 +15,7 @@ class table {
 
 		console.log("Preparing table")
 		await this.flush()
-		await run("-I {table} -j RETURN")
+		await run("-I {table} -j DROP")
 		config["as-allow"].forEach(async ip => {
 			await run(`-I {table} -s ${ip} -j ACCEPT`)
 		})
