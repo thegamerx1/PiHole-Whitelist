@@ -1,4 +1,6 @@
 {
 	"port": 80,
-	"password": "hehe"
+	"password": "hehe",
+	"table": "dnsblok",
+	"as-allow": []
 }

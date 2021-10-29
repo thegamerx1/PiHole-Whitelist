@@ -1,6 +1,7 @@
 const fsp = require("fs/promises")
 const util = require("util")
 const exec = util.promisify(require("child_process").exec)
+const config = require("./config.json")
 
 const FILE = "allowed.json"
 isWindows = process.platform === "win32"
@@ -14,8 +15,10 @@ class table {
 
 		console.log("Preparing table")
 		await this.flush()
-		await run("-I DOCKER-USER -i eth0 -p tcp --dport 53 -j DROP -w 5")
-		await run("-I DOCKER-USER -i eth0 -p udp --dport 53 -j DROP -w 5")
+		await run("-I {table} -i eth0 --dport 53 -j DROP")
+		config["as-allow"].forEach(ip => {
+			await run(`-I {table} -i eth0 -s ${ip} -j ACCEPT`)
+		})
 		await fsp.readFile(FILE, "utf8").then(data => {
 			JSON.parse(data).forEach(async ip => {
 				await this.add(ip)
@@ -25,14 +28,14 @@ class table {
 	}
 
 	async add(ip) {
-		await run(`-I DOCKER-USER -i eth0 -s ${ip}/32 -j ACCEPT -w 5`)
+		await run(`-I {table} -i eth0 -s ${ip}/32 -j ACCEPT`)
 		ipList.push(ip)
 		await saveFile()
 		console.log(ip + " was added")
 	}
 
 	async remove(ip) {
-		await run(`-D DOCKER-USER -s ${ip}/32 -w 5`)
+		await run(`-D {table} -s ${ip}/32`)
 		ipList.splice(ipList.indexOf(ip), 1)
 		await saveFile()
 		console.log(ip + " was removed")
@@ -43,16 +46,17 @@ class table {
 	}
 
 	async flush() {
-		await run("-F DOCKER-USER")
+		await run("-F {table}")
 	}
 }
 
 async function run(command) {
+	command = command.replace("{table}", config.table)
 	if (isWindows) {
 		console.log(`Run "sudo iptables ${command}"`)
 		return
 	}
-	const { error } = await exec("sudo iptables " + command)
+	const { error } = await exec("sudo iptables " + command + " -w 5")
 	if (error) {
 		console.error(`"${command}" failed: `)
 		console.error(error)
